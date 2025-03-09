@@ -1,1 +1,14 @@
+#!/bin/bash
 
+# Start scrcpy with the specified options
+SCRCPY_PATH="/home/steven/bin/scrcpy-linux-x86_64-v3.1/scrcpy"
+DEVICE_IP="192.168.1.35"
+
+# Check if scrcpy exists at the specified path
+if [ ! -f "$SCRCPY_PATH" ]; then
+  echo "Error: scrcpy not found at $SCRCPY_PATH"
+  exit 1
+fi
+
+# Start scrcpy with the specified options
+"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --stay-awake --no-audio
