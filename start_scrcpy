@@ -3,23 +3,20 @@
 # --- Configuration ---
 # Parent directory where different scrcpy version folders are located.
 SCRCPY_PARENT_DIR="/home/steven/bin"
-
-# Name of the directory containing the specific scrcpy version you want to use.
-# !!! IMPORTANT: Update this line when you install a new version of scrcpy !!!
-# For example, if your new scrcpy version is in "/home/steven/bin/scrcpy-linux-x86_64-v3.2",
-# then set SCRCPY_VERSION_FOLDER_NAME="scrcpy-linux-x86_64-v3.2"
-SCRCPY_VERSION_FOLDER_NAME="scrcpy-linux-x86_64-v3.1" # <-- UPDATE THIS
-
 DEVICE_IP="192.168.1.35"
 # --- End Configuration ---
 
-# Construct the full path to the scrcpy executable
-SCRCPY_PATH="$SCRCPY_PARENT_DIR/$SCRCPY_VERSION_FOLDER_NAME/scrcpy"
+# --- Auto-detection of scrcpy path ---
+echo "Searching for the latest scrcpy version in $SCRCPY_PARENT_DIR..."
 
-# Check if scrcpy exists at the specified path
-if [ ! -f "$SCRCPY_PATH" ]; then
-  echo "Error: scrcpy not found at $SCRCPY_PATH"
-  echo "Please ensure SCRCPY_PARENT_DIR and SCRCPY_VERSION_FOLDER_NAME are set correctly in the script."
+# Find the latest scrcpy directory (sorts by version number) and construct the path
+# It looks for directories like "scrcpy-linux-x86_64-v..."
+SCRCPY_PATH=$(find "$SCRCPY_PARENT_DIR" -maxdepth 1 -type d -name "scrcpy-linux-x86_64-v*" | sort -V | tail -n 1 | sed 's/$/\/scrcpy/')
+
+# Check if scrcpy was found
+if [ -z "$SCRCPY_PATH" ] || [ ! -f "$SCRCPY_PATH" ]; then
+  echo "Error: Could not automatically find the scrcpy executable."
+  echo "Please check if a 'scrcpy-linux-x86_64-v...' folder exists in $SCRCPY_PARENT_DIR"
   exit 1
 fi
 
