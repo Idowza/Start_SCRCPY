@@ -2,8 +2,18 @@
 
 # --- Configuration ---
 # Parent directory where different scrcpy version folders are located.
-SCRCPY_PARENT_DIR="/home/steven/bin"
-DEVICE_IP="192.168.1.35"
+SCRCPY_PARENT_DIR="${HOME}/bin"
+DEFAULT_DEVICE_IP="192.168.1.35"
+
+# --- Argument Parsing ---
+# If the first argument is provided, use it as the device IP.
+# All other arguments will be passed to scrcpy.
+if [ -n "$1" ]; then
+    DEVICE_IP="$1"
+    shift # Remove the IP address from the arguments list
+else
+    DEVICE_IP="$DEFAULT_DEVICE_IP"
+fi
 # --- End Configuration ---
 
 # --- Auto-detection of scrcpy path ---
@@ -21,6 +31,7 @@ if [ -z "$SCRCPY_PATH" ] || [ ! -f "$SCRCPY_PATH" ]; then
 fi
 
 echo "Using scrcpy: $SCRCPY_PATH"
+echo "Connecting to device: $DEVICE_IP"
 
-# Start scrcpy with the specified options
-"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --stay-awake --no-audio
+# Start scrcpy with the specified options and any additional arguments
+"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --stay-awake --no-audio "$@"
