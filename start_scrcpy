@@ -34,4 +34,4 @@ echo "Using scrcpy: $SCRCPY_PATH"
 echo "Connecting to device: $DEVICE_IP"
 
 # Start scrcpy with the specified options and any additional arguments
-"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --stay-awake --no-audio "$@"
+"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --keep-active --no-audio "$@"
