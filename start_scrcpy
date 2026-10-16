@@ -1,37 +1,44 @@
 #!/bin/bash
+set -uo pipefail
 
 # --- Configuration ---
-# Parent directory where different scrcpy version folders are located.
 SCRCPY_PARENT_DIR="${HOME}/bin"
 DEFAULT_DEVICE_IP="192.168.1.35"
 
 # --- Argument Parsing ---
-# If the first argument is provided, use it as the device IP.
-# All other arguments will be passed to scrcpy.
-if [ -n "$1" ]; then
+# If the first argument exists and does NOT start with '-', treat it as the IP.
+# Otherwise, fall back to DEFAULT_DEVICE_IP and pass all arguments to scrcpy.
+if [[ $# -gt 0 && "$1" != -* ]]; then
     DEVICE_IP="$1"
-    shift # Remove the IP address from the arguments list
+    shift
 else
     DEVICE_IP="$DEFAULT_DEVICE_IP"
 fi
-# --- End Configuration ---
 
 # --- Auto-detection of scrcpy path ---
 echo "Searching for the latest scrcpy version in $SCRCPY_PARENT_DIR..."
 
-# Find the latest scrcpy directory (sorts by version number) and construct the path
-# It looks for directories like "scrcpy-linux-x86_64-v..."
-SCRCPY_PATH=$(find "$SCRCPY_PARENT_DIR" -maxdepth 1 -type d -name "scrcpy-linux-x86_64-v*" | sort -V | tail -n 1 | sed 's/$/\/scrcpy/')
+SCRCPY_PATH=$(find "$SCRCPY_PARENT_DIR" -maxdepth 2 -type f -executable -path "*/scrcpy-linux-x86_64-v*/scrcpy" 2>/dev/null | sort -V | tail -n 1)
 
-# Check if scrcpy was found
-if [ -z "$SCRCPY_PATH" ] || [ ! -f "$SCRCPY_PATH" ]; then
-  echo "Error: Could not automatically find the scrcpy executable."
-  echo "Please check if a 'scrcpy-linux-x86_64-v...' folder exists in $SCRCPY_PARENT_DIR"
-  exit 1
+if [[ -z "${SCRCPY_PATH:-}" || ! -x "$SCRCPY_PATH" ]]; then
+    echo "Error: Could not find an executable scrcpy binary." >&2
+    echo "Please check if a 'scrcpy-linux-x86_64-v...' folder exists in $SCRCPY_PARENT_DIR" >&2
+    exit 1
 fi
 
 echo "Using scrcpy: $SCRCPY_PATH"
 echo "Connecting to device: $DEVICE_IP"
 
-# Start scrcpy with the specified options and any additional arguments
-"$SCRCPY_PATH" --tcpip="$DEVICE_IP" --video-codec=h265 --turn-screen-off --keep-active --no-audio --no-window-aspect-ratio-lock --hwdec=auto "$@"
+# --- Launch Options ---
+SCRCPY_OPTS=(
+    "--tcpip=${DEVICE_IP}"
+    "--video-codec=h265"
+    "--turn-screen-off"
+    "--keep-active"
+    "--no-audio"
+    "--no-window-aspect-ratio-lock"
+    "--hwdec=auto"
+)
+
+# Replace the shell process with scrcpy
+exec "$SCRCPY_PATH" "${SCRCPY_OPTS[@]}" "$@"
